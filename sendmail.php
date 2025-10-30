@@ -1,27 +1,23 @@
 <?php
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $name = htmlspecialchars($_POST['name']);
+    $email = htmlspecialchars($_POST['email']);
+    $mobile = htmlspecialchars($_POST['mobile']);
+    $service = htmlspecialchars($_POST['service']);
+    $note = htmlspecialchars($_POST['note']);
+
     $to = "info@zuaqenergy.com";
-    $subject = "New Quote Request from Zuaq Energy Website";
-    $name = htmlspecialchars($_POST["name"]);
-    $email = htmlspecialchars($_POST["email"]);
-    $mobile = htmlspecialchars($_POST["mobile"]);
-    $service = htmlspecialchars($_POST["service"]);
-    $note = htmlspecialchars($_POST["note"]);
-
-    $message = "Name: $name\n";
-    $message .= "Email: $email\n";
-    $message .= "Mobile: $mobile\n";
-    $message .= "Service: $service\n";
-    $message .= "Note: $note\n";
-
-    $headers = "From: $email\r\nReply-To: $email\r\n";
+    $subject = "New Contact Form Submission";
+    $message = "Name: $name\nEmail: $email\nMobile: $mobile\nService: $service\nNote: $note";
+    $headers = "From: noreply@zuaqenergy.com\r\n"; // Use a verified domain email
+    $headers .= "Reply-To: $email\r\n";
 
     if (mail($to, $subject, $message, $headers)) {
-        echo "Thank you for contacting us. We will get back to you soon.";
+        echo "Message sent successfully!";
     } else {
-        echo "Sorry, there was an error sending your message.";
+        echo "Failed to send the message. Please try again later.";
     }
 } else {
-    echo "Invalid request.";
+    echo "Invalid request method.";
 }
 ?>
