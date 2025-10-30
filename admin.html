@@ -3,105 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - Zuaq Energy</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="css/style.css" rel="stylesheet">
+    <title>Admin Panel</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </head>
 <body>
-    <div class="container mt-5">
-        <h1 class="text-center mb-4">Admin Panel</h1>
-        <!-- Login Section -->
-        <div id="login-section" class="card p-4">
-            <h3 class="text-center">Admin Login</h3>
-            <form id="login-form">
-                <div class="mb-3">
-                    <label for="username" class="form-label">Username</label>
-                    <input type="text" class="form-control" id="username" placeholder="Enter your username" required>
-                </div>
-                <div class="mb-3">
-                    <label for="password" class="form-label">Password</label>
-                    <input type="password" class="form-control" id="password" placeholder="Enter your password" required>
-                </div>
-                <button type="submit" class="btn btn-primary w-100">Login</button>
-            </form>
-        </div>
 
-        <!-- Admin Dashboard -->
-        <div id="dashboard-section" class="d-none">
-            <h3 class="text-center">Welcome, Admin</h3>
-            <div class="mt-4">
-                <button class="btn btn-success mb-3" id="add-project-btn">Add Project</button>
-                <button class="btn btn-info mb-3" id="add-employee-btn">Add Employee</button>
-                <button class="btn btn-danger mb-3" id="logout-btn">Logout</button>
+<div class="container mt-5">
+    <div id="login-section">
+        <h2 class="text-center">Admin Login</h2>
+        <form id="login-form">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" class="form-control" id="username" required>
             </div>
-            <div id="form-section" class="d-none">
-                <form id="data-form">
-                    <div id="form-fields"></div>
-                    <button type="submit" class="btn btn-primary mt-3">Submit</button>
-                </form>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" class="form-control" id="password" required>
             </div>
-        </div>
+            <button type="submit" class="btn btn-primary btn-block">Login</button>
+        </form>
     </div>
 
-    <script>
-        // Admin Panel Logic
-        const loginSection = document.getElementById('login-section');
-        const dashboardSection = document.getElementById('dashboard-section');
-        const formSection = document.getElementById('form-section');
-        const formFields = document.getElementById('form-fields');
+    <div id="dashboard-section" class="d-none">
+        <h3 class="text-center">Welcome, Admin</h3>
+        <div class="mt-4">
+            <button class="btn btn-success mb-3" id="add-project-btn">Add Project</button>
+            <button class="btn btn-info mb-3" id="add-employee-btn">Add Employee</button>
+            <button class="btn btn-danger mb-3" id="logout-btn">Logout</button>
+        </div>
+        <div id="form-section" class="d-none">
+            <form id="data-form" enctype="multipart/form-data">
+                <div id="form-fields"></div>
+                <button type="submit" class="btn btn-primary mt-3">Submit</button>
+            </form>
+        </div>
+    </div>
+</div>
 
-        document.getElementById('login-form').addEventListener('submit', function (e) {
-            e.preventDefault();
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
+<script>
+    // Admin Panel Logic
+    const loginSection = document.getElementById('login-section');
+    const dashboardSection = document.getElementById('dashboard-section');
+    const formSection = document.getElementById('form-section');
+    const formFields = document.getElementById('form-fields');
 
-            // Simple login validation (replace with API call for real authentication)
-            if (username === 'admin' && password === 'password') {
-                loginSection.classList.add('d-none');
-                dashboardSection.classList.remove('d-none');
-            } else {
-                alert('Invalid credentials!');
-            }
-        });
+    document.getElementById('login-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value.trim();
 
-        document.getElementById('logout-btn').addEventListener('click', function () {
-            dashboardSection.classList.add('d-none');
-            loginSection.classList.remove('d-none');
-        });
+        // Hardcoded credentials
+        const hardcodedUsername = 'admin';
+        const hardcodedPassword = 'password123';
 
-        document.getElementById('add-project-btn').addEventListener('click', function () {
-            formSection.classList.remove('d-none');
-            formFields.innerHTML = `
-                <div class="mb-3">
-                    <label for="project-title" class="form-label">Project Title</label>
-                    <input type="text" class="form-control" id="project-title" placeholder="Enter project title" required>
-                </div>
-                <div class="mb-3">
-                    <label for="project-description" class="form-label">Project Description</label>
-                    <textarea class="form-control" id="project-description" placeholder="Enter project description" required></textarea>
-                </div>
-            `;
-        });
+        if (username === hardcodedUsername && password === hardcodedPassword) {
+            alert('Login successful!');
+            loginSection.classList.add('d-none');
+            dashboardSection.classList.remove('d-none');
+        } else {
+            alert('Invalid credentials! Please try again.');
+        }
+    });
 
-        document.getElementById('add-employee-btn').addEventListener('click', function () {
-            formSection.classList.remove('d-none');
-            formFields.innerHTML = `
-                <div class="mb-3">
-                    <label for="employee-name" class="form-label">Employee Name</label>
-                    <input type="text" class="form-control" id="employee-name" placeholder="Enter employee name" required>
-                </div>
-                <div class="mb-3">
-                    <label for="employee-role" class="form-label">Employee Role</label>
-                    <input type="text" class="form-control" id="employee-role" placeholder="Enter employee role" required>
-                </div>
-            `;
-        });
+    document.getElementById('add-project-btn').addEventListener('click', function () {
+        formSection.classList.remove('d-none');
+        formFields.innerHTML = `
+            <div class="mb-3">
+                <label for="project-title" class="form-label">Project Title</label>
+                <input type="text" class="form-control" id="project-title" placeholder="Enter project title" required>
+            </div>
+            <div class="mb-3">
+                <label for="project-description" class="form-label">Project Description</label>
+                <textarea class="form-control" id="project-description" placeholder="Enter project description" required></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="project-image" class="form-label">Project Image</label>
+                <input type="file" class="form-control" id="project-image" accept="image/*" required>
+            </div>
+        `;
+    });
 
-        document.getElementById('data-form').addEventListener('submit', function (e) {
-            e.preventDefault();
-            alert('Data submitted successfully! (Replace with API call)');
+    document.getElementById('data-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        const projectTitle = document.getElementById('project-title').value.trim();
+        const projectDescription = document.getElementById('project-description').value.trim();
+        const projectImage = document.getElementById('project-image').files[0];
+
+        if (projectTitle && projectDescription && projectImage) {
+            alert('Project added successfully! (Replace with API call)');
             formSection.classList.add('d-none');
-        });
-    </script>
+        } else {
+            alert('Please fill out all fields.');
+        }
+    });
+</script>
+
 </body>
 </html>
