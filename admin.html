@@ -8,6 +8,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bcrypt.js/2.4.3/bcrypt.min.js"></script>
 </head>
 <body>
 
@@ -69,6 +70,8 @@
 </div>
 
 <script>
+    const API_BASE_URL = 'http://localhost:3000/api'; // Replace with your friend's server URL
+
     // Admin Panel Logic
     const loginSection = document.getElementById('login-section');
     const signupSection = document.getElementById('signup-section');
@@ -91,36 +94,61 @@
     });
 
     // Signup Logic
-    document.getElementById('signup-form').addEventListener('submit', function (e) {
+    document.getElementById('signup-form').addEventListener('submit', async function (e) {
         e.preventDefault();
         const username = document.getElementById('signup-username').value.trim();
         const password = document.getElementById('signup-password').value.trim();
 
         if (username && password) {
-            // Save admin credentials to local storage
-            localStorage.setItem('admin', JSON.stringify({ username, password }));
-            alert('Signup successful! You can now log in.');
-            signupSection.classList.add('d-none');
-            loginSection.classList.remove('d-none');
+            // Hash the password before sending it to the server
+            const hashedPassword = await bcrypt.hash(password, 10);
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/signup`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password: hashedPassword }),
+                });
+                const data = await response.json();
+                if (data.success) {
+                    alert('Signup successful! You can now log in.');
+                    signupSection.classList.add('d-none');
+                    loginSection.classList.remove('d-none');
+                } else {
+                    alert(data.message || 'Signup failed.');
+                }
+            } catch (error) {
+                console.error('Error during signup:', error);
+                alert('An error occurred. Please try again.');
+            }
         } else {
             alert('Please fill out all fields.');
         }
     });
 
     // Login Logic
-    document.getElementById('login-form').addEventListener('submit', function (e) {
+    document.getElementById('login-form').addEventListener('submit', async function (e) {
         e.preventDefault();
         const username = document.getElementById('username').value.trim();
         const password = document.getElementById('password').value.trim();
 
-        // Retrieve admin credentials from local storage
-        const admin = JSON.parse(localStorage.getItem('admin')) || {};
-        if (username === admin.username && password === admin.password) {
-            alert('Login successful!');
-            loginSection.classList.add('d-none');
-            dashboardSection.classList.remove('d-none');
-        } else {
-            alert('Invalid credentials! Please try again.');
+        try {
+            const response = await fetch(`${API_BASE_URL}/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password }),
+            });
+            const data = await response.json();
+            if (data.success) {
+                alert('Login successful!');
+                loginSection.classList.add('d-none');
+                dashboardSection.classList.remove('d-none');
+            } else {
+                alert(data.message || 'Invalid credentials.');
+            }
+        } catch (error) {
+            console.error('Error during login:', error);
+            alert('An error occurred. Please try again.');
         }
     });
 
@@ -143,46 +171,121 @@
         `;
     });
 
+    function validateInput(input) {
+        const regex = /^[a-zA-Z0-9\s.,!?-]+$/; // Allow only alphanumeric characters and basic punctuation
+        return regex.test(input);
+    }
+
+    document.getElementById('data-form').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const projectTitle = document.getElementById('project-title').value.trim();
+        const projectDescription = document.getElementById('project-description').value.trim();
+        const projectImage = document.getElementById('project-image').files[0];
+
+        if (!validateInput(projectTitle) || !validateInput(projectDescription)) {
+            alert('Invalid input detected. Please use only alphanumeric characters and basic punctuation.');
+            return;
+        }
+
+        if (projectImage) {
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+            if (!allowedTypes.includes(projectImage.type)) {
+                alert('Invalid file type. Please upload an image file (JPEG, PNG, or GIF).');
+                return;
+            }
+
+            if (projectImage.size > 2 * 1024 * 1024) { // 2 MB limit
+                alert('File size exceeds the 2 MB limit.');
+                return;
+            }
+        }
+
+        if (projectTitle && projectDescription && projectImage) {
+            const formData = new FormData();
+            formData.append('title', projectTitle);
+            formData.append('description', projectDescription);
+            formData.append('image', projectImage);
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/projects`, {
+                    method: 'POST',
+                    body: formData,
+                });
+                const data = await response.json();
+                if (data.success) {
+                    alert('Project added successfully!');
+                    formSection.classList.add('d-none');
+                } else {
+                    alert(data.message || 'Failed to add project.');
+                }
+            } catch (error) {
+                console.error('Error adding project:', error);
+                alert('An error occurred. Please try again.');
+            }
+        } else {
+            alert('Please fill out all fields.');
+        }
+    });
+
     // Edit Projects Logic
-    document.getElementById('edit-projects-btn').addEventListener('click', function () {
+    document.getElementById('edit-projects-btn').addEventListener('click', async function () {
         formSection.classList.remove('d-none');
-        const projects = JSON.parse(localStorage.getItem('projects')) || [];
-        formFields.innerHTML = projects.map((project, index) => `
-            <div class="mb-3 border p-3">
-                <h5>Project ${index + 1}</h5>
-                <label>Title:</label>
-                <input type="text" class="form-control mb-2" value="${project.title}" data-index="${index}" data-field="title">
-                <label>Description:</label>
-                <textarea class="form-control mb-2" data-index="${index}" data-field="description">${project.description}</textarea>
-                <button class="btn btn-danger btn-sm delete-project" data-index="${index}">Delete</button>
-            </div>
-        `).join('');
+        try {
+            const response = await fetch(`${API_BASE_URL}/projects`);
+            const projects = await response.json();
+            formFields.innerHTML = projects.map((project, index) => `
+                <div class="mb-3 border p-3">
+                    <h5>Project ${index + 1}</h5>
+                    <label>Title:</label>
+                    <input type="text" class="form-control mb-2" value="${project.title}" data-id="${project.id}" data-field="title">
+                    <label>Description:</label>
+                    <textarea class="form-control mb-2" data-id="${project.id}" data-field="description">${project.description}</textarea>
+                    <button class="btn btn-danger btn-sm delete-project" data-id="${project.id}">Delete</button>
+                </div>
+            `).join('');
 
-        // Delete Project
-        document.querySelectorAll('.delete-project').forEach(button => {
-            button.addEventListener('click', function () {
-                const index = this.getAttribute('data-index');
-                projects.splice(index, 1);
-                localStorage.setItem('projects', JSON.stringify(projects));
-                alert('Project deleted successfully!');
-                location.reload();
-            });
-        });
+            // Delete Project
+            document.querySelectorAll('.delete-project').forEach(button => {
+                button.addEventListener('click', async function () {
+                    const projectId = this.getAttribute('data-id');
+                    try {                        alert('An error occurred. Please try again.');
+                        const response = await fetch(`${API_BASE_URL}/projects/${projectId}`, {
+                            method: 'DELETE',
+                        });
+                        const data = await response.json();
+                        if (data.success) {
+                            alert('Project deleted successfully!');addEventListener('input', async function (e) {
+                            location.reload(); e.target.getAttribute('data-id');
+                        } else {
+                            alert(data.message || 'Failed to delete project.');onst value = e.target.value;
+                        }
+                    } catch (error) {atch (error) {
+                        console.error('Error deleting project:', error);rojectId}`, {            console.error('Error fetching projects:', error);
+                        alert('An error occurred. Please try again.');
+                    }               headers: { 'Content-Type': 'application/json' },
+                });                 body: JSON.stringify({ [field]: value }),
+            });                    });
+yees Logic (Placeholder)
+            // Update Project LogicntById('edit-employees-btn').addEventListener('click', function () {
+            formFields.querySelectorAll('input, textarea').forEach(input => {ting functionality can be implemented similarly.');
+                input.addEventListener('blur', async function () { }
+                    const projectId = this.getAttribute('data-id');script>
+                    const field = this.getAttribute('data-field');
+                    const value = this.value.trim();
 
-        // Save Changes
-        formFields.addEventListener('input', function (e) {
-            const index = e.target.getAttribute('data-index');
-            const field = e.target.getAttribute('data-field');
-            projects[index][field] = e.target.value;
-            localStorage.setItem('projects', JSON.stringify(projects));
-        });
-    });
+                    if (value && validateInput(value)) {
 
-    // Edit Employees Logic (Placeholder)
-    document.getElementById('edit-employees-btn').addEventListener('click', function () {
-        alert('Employee editing functionality can be implemented similarly.');
-    });
-</script>
 
+
+
+
+
+                                                           body: JSON.stringify({ [field]: value }),                                headers: { 'Content-Type': 'application/json' },                                method: 'PUT',                            await fetch(`${API_BASE_URL}/projects/${projectId}`, {                        try {
+
+
+
+
+
+</html></body></script>    });        alert('Employee editing functionality can be implemented similarly.');    document.getElementById('edit-employees-btn').addEventListener('click', function () {    // Edit Employees Logic (Placeholder)
 </body>
 </html>
