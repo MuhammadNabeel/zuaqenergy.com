@@ -1,4 +1,7 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $name = htmlspecialchars($_POST['name']);
     $email = htmlspecialchars($_POST['email']);
@@ -18,6 +21,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         echo "Failed to send the message. Please try again later.";
     }
 } else {
-    echo "Invalid request method.";
+    header("Location: /"); // Redirect to the homepage
+    exit;
 }
 ?>
