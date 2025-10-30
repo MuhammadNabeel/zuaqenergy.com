@@ -97,8 +97,28 @@
         const projectImage = document.getElementById('project-image').files[0];
 
         if (projectTitle && projectDescription && projectImage) {
-            alert('Project added successfully! (Replace with API call)');
-            formSection.classList.add('d-none');
+            // Convert the image to a Base64 string
+            const reader = new FileReader();
+            reader.onload = function () {
+                const projectImageBase64 = reader.result;
+
+                // Get existing projects from local storage
+                const projects = JSON.parse(localStorage.getItem('projects')) || [];
+
+                // Add the new project
+                projects.push({
+                    title: projectTitle,
+                    description: projectDescription,
+                    image: projectImageBase64,
+                });
+
+                // Save updated projects back to local storage
+                localStorage.setItem('projects', JSON.stringify(projects));
+
+                alert('Project added successfully!');
+                formSection.classList.add('d-none');
+            };
+            reader.readAsDataURL(projectImage);
         } else {
             alert('Please fill out all fields.');
         }
