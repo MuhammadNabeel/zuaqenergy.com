@@ -12,6 +12,7 @@
 <body>
 
 <div class="container mt-5">
+    <!-- Login Section -->
     <div id="login-section">
         <h2 class="text-center">Admin Login</h2>
         <form id="login-form">
@@ -24,14 +25,38 @@
                 <input type="password" class="form-control" id="password" required>
             </div>
             <button type="submit" class="btn btn-primary btn-block">Login</button>
+            <p class="text-center mt-3">
+                Don't have an account? <a href="#" id="show-signup">Sign up</a>
+            </p>
         </form>
     </div>
 
+    <!-- Signup Section -->
+    <div id="signup-section" class="d-none">
+        <h2 class="text-center">Admin Signup</h2>
+        <form id="signup-form">
+            <div class="form-group">
+                <label for="signup-username">Username:</label>
+                <input type="text" class="form-control" id="signup-username" required>
+            </div>
+            <div class="form-group">
+                <label for="signup-password">Password:</label>
+                <input type="password" class="form-control" id="signup-password" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Sign Up</button>
+            <p class="text-center mt-3">
+                Already have an account? <a href="#" id="show-login">Login</a>
+            </p>
+        </form>
+    </div>
+
+    <!-- Dashboard Section -->
     <div id="dashboard-section" class="d-none">
         <h3 class="text-center">Welcome, Admin</h3>
         <div class="mt-4">
             <button class="btn btn-success mb-3" id="add-project-btn">Add Project</button>
-            <button class="btn btn-info mb-3" id="add-employee-btn">Add Employee</button>
+            <button class="btn btn-info mb-3" id="edit-projects-btn">Edit Projects</button>
+            <button class="btn btn-warning mb-3" id="edit-employees-btn">Edit Employees</button>
             <button class="btn btn-danger mb-3" id="logout-btn">Logout</button>
         </div>
         <div id="form-section" class="d-none">
@@ -46,24 +71,51 @@
 <script>
     // Admin Panel Logic
     const loginSection = document.getElementById('login-section');
+    const signupSection = document.getElementById('signup-section');
     const dashboardSection = document.getElementById('dashboard-section');
     const formSection = document.getElementById('form-section');
     const formFields = document.getElementById('form-fields');
 
+    // Show Signup Section
+    document.getElementById('show-signup').addEventListener('click', function (e) {
+        e.preventDefault();
+        loginSection.classList.add('d-none');
+        signupSection.classList.remove('d-none');
+    });
+
+    // Show Login Section
+    document.getElementById('show-login').addEventListener('click', function (e) {
+        e.preventDefault();
+        signupSection.classList.add('d-none');
+        loginSection.classList.remove('d-none');
+    });
+
+    // Signup Logic
+    document.getElementById('signup-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        const username = document.getElementById('signup-username').value.trim();
+        const password = document.getElementById('signup-password').value.trim();
+
+        if (username && password) {
+            // Save admin credentials to local storage
+            localStorage.setItem('admin', JSON.stringify({ username, password }));
+            alert('Signup successful! You can now log in.');
+            signupSection.classList.add('d-none');
+            loginSection.classList.remove('d-none');
+        } else {
+            alert('Please fill out all fields.');
+        }
+    });
+
+    // Login Logic
     document.getElementById('login-form').addEventListener('submit', function (e) {
         e.preventDefault();
         const username = document.getElementById('username').value.trim();
         const password = document.getElementById('password').value.trim();
 
-        // Debugging: Log entered credentials
-        console.log('Entered Username:', username);
-        console.log('Entered Password:', password);
-
-        // Hardcoded credentials
-        const hardcodedUsername = 'admin';
-        const hardcodedPassword = 'password123';
-
-        if (username === hardcodedUsername && password === hardcodedPassword) {
+        // Retrieve admin credentials from local storage
+        const admin = JSON.parse(localStorage.getItem('admin')) || {};
+        if (username === admin.username && password === admin.password) {
             alert('Login successful!');
             loginSection.classList.add('d-none');
             dashboardSection.classList.remove('d-none');
@@ -72,6 +124,7 @@
         }
     });
 
+    // Add Project Logic
     document.getElementById('add-project-btn').addEventListener('click', function () {
         formSection.classList.remove('d-none');
         formFields.innerHTML = `
@@ -90,38 +143,44 @@
         `;
     });
 
-    document.getElementById('data-form').addEventListener('submit', function (e) {
-        e.preventDefault();
-        const projectTitle = document.getElementById('project-title').value.trim();
-        const projectDescription = document.getElementById('project-description').value.trim();
-        const projectImage = document.getElementById('project-image').files[0];
+    // Edit Projects Logic
+    document.getElementById('edit-projects-btn').addEventListener('click', function () {
+        formSection.classList.remove('d-none');
+        const projects = JSON.parse(localStorage.getItem('projects')) || [];
+        formFields.innerHTML = projects.map((project, index) => `
+            <div class="mb-3 border p-3">
+                <h5>Project ${index + 1}</h5>
+                <label>Title:</label>
+                <input type="text" class="form-control mb-2" value="${project.title}" data-index="${index}" data-field="title">
+                <label>Description:</label>
+                <textarea class="form-control mb-2" data-index="${index}" data-field="description">${project.description}</textarea>
+                <button class="btn btn-danger btn-sm delete-project" data-index="${index}">Delete</button>
+            </div>
+        `).join('');
 
-        if (projectTitle && projectDescription && projectImage) {
-            // Convert the image to a Base64 string
-            const reader = new FileReader();
-            reader.onload = function () {
-                const projectImageBase64 = reader.result;
-
-                // Get existing projects from local storage
-                const projects = JSON.parse(localStorage.getItem('projects')) || [];
-
-                // Add the new project
-                projects.push({
-                    title: projectTitle,
-                    description: projectDescription,
-                    image: projectImageBase64,
-                });
-
-                // Save updated projects back to local storage
+        // Delete Project
+        document.querySelectorAll('.delete-project').forEach(button => {
+            button.addEventListener('click', function () {
+                const index = this.getAttribute('data-index');
+                projects.splice(index, 1);
                 localStorage.setItem('projects', JSON.stringify(projects));
+                alert('Project deleted successfully!');
+                location.reload();
+            });
+        });
 
-                alert('Project added successfully!');
-                formSection.classList.add('d-none');
-            };
-            reader.readAsDataURL(projectImage);
-        } else {
-            alert('Please fill out all fields.');
-        }
+        // Save Changes
+        formFields.addEventListener('input', function (e) {
+            const index = e.target.getAttribute('data-index');
+            const field = e.target.getAttribute('data-field');
+            projects[index][field] = e.target.value;
+            localStorage.setItem('projects', JSON.stringify(projects));
+        });
+    });
+
+    // Edit Employees Logic (Placeholder)
+    document.getElementById('edit-employees-btn').addEventListener('click', function () {
+        alert('Employee editing functionality can be implemented similarly.');
     });
 </script>
 
