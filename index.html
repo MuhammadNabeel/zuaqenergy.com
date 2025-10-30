@@ -406,7 +406,7 @@
                         <h6 class="text-primary">Free Quote</h6>
                         <h1 class="mb-4">Get A Free Quote</h1>
                         <p class="mb-4 pb-2">Contact us for a free consultation and discover how Zuaq Energy can help you achieve your clean energy goals.</p>
-                        <form action="sendmail.php" method="POST">
+                        <form action="sendmail.php" method="POST" enctype="multipart/form-data">
                             <div class="row g-3">
                                 <div class="col-12 col-sm-6">
                                     <input type="text" class="form-control border-0" name="name" placeholder="Your Name" style="height: 55px;" required>
@@ -427,6 +427,9 @@
                                 </div>
                                 <div class="col-12">
                                     <textarea class="form-control border-0" name="note" placeholder="Special Note"></textarea>
+                                </div>
+                                <div class="col-12">
+                                    <input type="file" class="form-control border-0" name="attachment" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
                                 </div>
                                 <div class="col-12">
                                     <button class="btn btn-primary rounded-pill py-3 px-5" type="submit">Submit</button>
